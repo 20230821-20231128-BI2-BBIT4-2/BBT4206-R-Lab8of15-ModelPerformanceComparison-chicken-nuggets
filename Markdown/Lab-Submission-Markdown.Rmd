@@ -1,0 +1,154 @@
+---
+title: "Business Intelligence Lab 8"
+author: "Chicken-nuggets"
+date: "3rd November 2023"
+output:
+  github_document: 
+    toc: yes
+    toc_depth: 4
+    fig_width: 6
+    fig_height: 4
+    df_print: default
+editor_options:
+  chunk_output_type: console
+---
+
+# Student Details
+
++--------------------------------+-------------------------------+
+| **Student ID Number and Name** | 1.  137118 Fatoumata Camara   |
+|                                | 2.  127039 Ayan Ahmed         |
+|                                | 3.  136869 Birkanwal Bhambra  |
+|                                | 4.  127602 Trevor Anjere      |
+|                                | 5.  133824 Habiba Siba        |
++--------------------------------+-------------------------------+
+| **BBIT 4.2 Group**             | Chicken-nuggets               |
++--------------------------------+-------------------------------+
+
+
+```{r Required Packages}
+if (require("languageserver")) {
+  require("languageserver")
+} else {
+  install.packages("languageserver", dependencies = TRUE,
+                   repos = "https://cloud.r-project.org")
+}
+
+if (require("mlbench")) {
+  require("mlbench")
+} else {
+  install.packages("mlbench", dependencies = TRUE,
+                   repos = "https://cloud.r-project.org")
+}
+
+## caret
+if (require("caret")) {
+  require("caret")
+} else {
+  install.packages("caret", dependencies = TRUE,
+                   repos = "https://cloud.r-project.org")
+}
+
+## kernlab 
+if (require("kernlab")) {
+  require("kernlab")
+} else {
+  install.packages("kernlab", dependencies = TRUE,
+                   repos = "https://cloud.r-project.org")
+}
+
+## randomForest 
+if (require("randomForest")) {
+  require("randomForest")
+} else {
+  install.packages("randomForest", dependencies = TRUE,
+                   repos = "https://cloud.r-project.org")
+}
+```
+
+
+
+```{r Loading dataset}
+
+data(BreastCancer)
+
+##removing missing data
+
+BreastCancer <- na.omit(BreastCancer)
+
+```
+
+
+
+```{r Training the model LDA}
+
+train_control <- trainControl(method = "repeatedcv", number = 10, repeats = 3)
+  
+```
+
+
+```{r CART}
+set.seed(7)
+Class_model_cart <- train(Class ~ ., data = BreastCancer,
+                             method = "rpart", trControl = train_control)
+```
+
+
+```{r KNN}
+set.seed(7)
+Class_model_knn <- train(Class ~ ., data = BreastCancer,
+                            method = "knn", trControl = train_control)
+```
+
+
+
+```{r SVM}
+set.seed(7)
+Class_model_svm <- train(Class ~ ., data = BreastCancer,
+                            method = "svmRadial", trControl = train_control)
+```
+
+
+```{r Random forest}
+set.seed(7)
+Class_model_rf <- train(Class ~ ., data = BreastCancer,
+                           method = "rf", trControl = train_control)
+```
+
+
+```{r results}
+
+results <- resamples(list(CART = Class_model_cart,
+                          KNN = Class_model_knn, SVM = Class_model_svm,
+                          RF = Class_model_rf))
+
+summary(results)
+
+scales <- list(x = list(relation = "free"), y = list(relation = "free"))
+bwplot(results, scales = scales)
+
+scales <- list(x = list(relation = "free"), y = list(relation = "free"))
+dotplot(results, scales = scales)
+
+splom(results)
+
+
+```
+
+
+
+```{r Pairwise xyPlots}
+
+xyplot(results, models = c("RF", "SVM"))
+
+xyplot(results, models = c("SVM", "CART"))
+
+```
+
+
+```{r statistical significance test}
+diffs <- diff(results)
+
+summary(diffs)
+```
+
